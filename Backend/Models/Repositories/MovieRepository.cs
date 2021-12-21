@@ -18,9 +18,9 @@ namespace Backend.Models.Repositories
                    .FirstOrDefaultAsync(x => x.MovieId == movieId);
         }
 
-        public async Task<List<Movie>> GetAllMovies()
+        public async Task<List<Movie>> GetAllMovies(int numberOfRatings)
         {
-            return await _context.Movies.Include(x => x.Ratings).ThenInclude(y => y.User).ToListAsync();
+            return await _context.Movies.Include(x => x.Ratings).ThenInclude(y => y.User).Where(x => x.Ratings.Count() > numberOfRatings).ToListAsync();
         }
         public async Task<List<Movie>> GetAllSeenMoviesByUserId(int userId)
         {

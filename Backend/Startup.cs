@@ -54,6 +54,7 @@ namespace Backend
             services.AddTransient<EuclideanDistanceService>();
             services.AddTransient<PearsonCorrelationService>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<DistanceCacheService<double>>();
 
             services.AddCors(options =>
             {
@@ -88,8 +89,8 @@ namespace Backend
             {
                 using (var context = serviceScope.ServiceProvider.GetService<Context>())
                 {
-                    context.Database.Migrate();
-                    AddRecommendationData(context);
+                    // context.Database.Migrate();
+                    // AddRecommendationData(context);
                 }
             }
 

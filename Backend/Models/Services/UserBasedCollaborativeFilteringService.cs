@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Backend.Models.Repositories;
 using Backend.Models.Recommendation;
+using System;
 
 namespace Backend.Models.Services
 {
@@ -15,12 +16,12 @@ namespace Backend.Models.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<MovieRecommendation>> FindKMovieRecommendation(int selectedUserId, int k = 3)
+        public async Task<List<MovieRecommendation>> FindKMovieRecommendation(int selectedUserId, int k = 3, int numberOfRatings = 10)
         {
             var selectedUser = await _unitOfWork.Users.GetUserById(selectedUserId);
             var similarites = await CalculateSimilarityScores(selectedUser);
             var weightedScores = await CalculateRatingWeightedScores(selectedUser, similarites);
-            var bestMovies = await FindBestMovies(similarites, weightedScores);
+            var bestMovies = await FindBestMovies(similarites, weightedScores, numberOfRatings);
             return bestMovies.Where(x => x.AverageWeightedRating > 0).Take(k).ToList();
         }
 
@@ -40,16 +41,25 @@ namespace Backend.Models.Services
             var similarityList = new List<Similarity>();
             foreach (var user in users)
             {
-                double distance = CalculateDistance(selectedUser, user);
+                var cache = new DistanceCacheService<double>();
+                double distance = cache.GetOrCreate(selectedUser.UserId.ToString() + user.UserId.ToString(), () => CalculateDistance(selectedUser, user));
+                cache.GetOrCreate(user.UserId.ToString() + selectedUser.UserId.ToString(), () => distance);
                 if (distance < 0) continue; //Not interested dissimilar scores, i.e only show scores with similarites
-                similarityList.Add(new Similarity
-                {
-                    Id = user.UserId,
-                    Name = user.UserName,
-                    SimilarityScore = distance
-                });
+                var similarity = CreateSimilarity(selectedUser, user, distance);
+                similarityList.Add(similarity);
             }
             return similarityList;
+        }
+
+        private Similarity CreateSimilarity(User selectedUser, User user, double distance)
+        {
+            return new Similarity
+            {
+                SelectedId = selectedUser.UserId,
+                Id = user.UserId,
+                Name = user.UserName,
+                SimilarityScore = distance
+            };
         }
 
         public async Task<List<RatingWeightedScore>> CalculateRatingWeightedScores(User selectedUser, List<Similarity> similarites)
@@ -77,9 +87,9 @@ namespace Backend.Models.Services
             return weightedScores;
         }
 
-        public async Task<List<MovieRecommendation>> FindBestMovies(List<Similarity> similarites, List<RatingWeightedScore> weightedScores)
+        public async Task<List<MovieRecommendation>> FindBestMovies(List<Similarity> similarites, List<RatingWeightedScore> weightedScores, int numberOfRatings)
         {
-            var movies = await _unitOfWork.Movies.GetAllMovies();
+            var movies = await _unitOfWork.Movies.GetAllMovies(numberOfRatings);
 
             var recommendationList = new List<MovieRecommendation>();
             foreach (var movie in movies)
@@ -97,10 +107,12 @@ namespace Backend.Models.Services
                 {
                     MovieId = movie.MovieId,
                     MovieTitle = movie.MovieTitle,
-                    AverageWeightedRating = sumOfMovieScores / sumOfSimilarities
+                    AverageWeightedRating = Math.Round(sumOfMovieScores / sumOfSimilarities, 4),
+                    NumberOfRatings = movie.Ratings.Count()
                 });
             }
-            return recommendationList.OrderByDescending(x => x.AverageWeightedRating).ToList();
+            //Evidence that sorting will be correct: https://stackoverflow.com/questions/49517159/orderby-numbers-and-thenby-boolean-not-working-for-list
+            return recommendationList.OrderByDescending(x => x.AverageWeightedRating).ThenByDescending(x => x.NumberOfRatings).ToList();
         }
     }
 }

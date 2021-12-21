@@ -17,27 +17,15 @@ namespace Backend.Controllers
         }
 
         [HttpGet("ubcf/ed/")]
-        public async Task<IActionResult> GetMovieRecommendationsByEuclidianDistance(int userId, int k = 3)
+        public async Task<IActionResult> GetMovieRecommendationsByEuclidianDistance(int userId, int k = 3, int numberOfRatings = 10)
         {
-            return Ok(await _euclideanDistance.FindKMovieRecommendation(userId, k));
+            return Ok(await _euclideanDistance.FindKMovieRecommendation(userId, k, numberOfRatings));
         }
 
         [HttpGet("ubcf/pc/")]
-        public async Task<IActionResult> GetMovieRecommendationsByPearsonCorrelation(int userId, int k = 3)
+        public async Task<IActionResult> GetMovieRecommendationsByPearsonCorrelation(int userId, int k = 3, int numberOfRatings = 10)
         {
-            return Ok(await _pearsonsCorrelation.FindKMovieRecommendation(userId, k));
-        }
-
-        [HttpGet("ubcfs/ed/")]
-        public async Task<IActionResult> GetTopUsersSimilaritiesByEuclidianDistance(int userId, int k = 3)
-        {
-            return Ok(await _euclideanDistance.FindKTopSimilar(userId, k));
-        }
-
-        [HttpGet("ubcfs/pc/")]
-        public async Task<IActionResult> GetTopUsersSimilaritiesByPearsonCorrelation(int userId, int k = 3)
-        {
-            return Ok(await _pearsonsCorrelation.FindKTopSimilar(userId, k));
+            return Ok(await _pearsonsCorrelation.FindKMovieRecommendation(userId, k, numberOfRatings));
         }
     }
 }
