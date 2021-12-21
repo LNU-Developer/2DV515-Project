@@ -1,0 +1,25 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  projectbackend:
+    image: projectbackend:latest
+    container_name: ProjectBackend
+    environment:
+      - DBCONNECTIONSTRING=server=projectdb;Database=ProjectDb;User=User;Password=1mW@tch1ngY0u;TreatTinyAsBoolean=true;Charset=utf8mb4;
+    restart: always
+    depends_on:
+      - projectdb
+
+  projectdb:
+    image: mysql:latest
+    container_name: ProjectDb
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+    environment:
+      - MYSQL_DATABASE=ProjectDb
+      - MYSQL_USER=User
+      - MYSQL_PASSWORD=1mW@tch1ngY0u
+      - MYSQL_ROOT_PASSWORD=g00dLuckCr@ck!ngTh!s:)
+    restart: always
