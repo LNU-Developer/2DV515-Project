@@ -4,7 +4,9 @@ namespace Backend.Models.Services
 {
     public class DistanceCacheService<T>
     {
-        private MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+        public DistanceCacheService(IMemoryCache memoryCache) => _cache = memoryCache;
+
+        private readonly IMemoryCache _cache;
 
         public T GetOrCreate(string key, Func<T> createItem)
         {

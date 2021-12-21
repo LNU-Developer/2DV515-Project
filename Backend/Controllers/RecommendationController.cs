@@ -19,13 +19,13 @@ namespace Backend.Controllers
         [HttpGet("ubcf/ed/")]
         public async Task<IActionResult> GetMovieRecommendationsByEuclidianDistance(int userId, int k = 3, int numberOfRatings = 10)
         {
-            return Ok(await _euclideanDistance.FindKMovieRecommendation(userId, k, numberOfRatings));
+            return Ok(await _euclideanDistance.FindKMovieRecommendation(userId, typeof(EuclideanDistanceService).Name, k, numberOfRatings));
         }
 
         [HttpGet("ubcf/pc/")]
         public async Task<IActionResult> GetMovieRecommendationsByPearsonCorrelation(int userId, int k = 3, int numberOfRatings = 10)
         {
-            return Ok(await _pearsonsCorrelation.FindKMovieRecommendation(userId, k, numberOfRatings));
+            return Ok(await _pearsonsCorrelation.FindKMovieRecommendation(userId, typeof(PearsonCorrelationService).Name, k, numberOfRatings));
         }
     }
 }

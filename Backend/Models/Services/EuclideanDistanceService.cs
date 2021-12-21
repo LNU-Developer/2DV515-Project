@@ -6,7 +6,7 @@ namespace Backend.Models.Services
 {
     public class EuclideanDistanceService : UserBasedCollaborativeFilteringService
     {
-        public EuclideanDistanceService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public EuclideanDistanceService(IUnitOfWork unitOfWork, DistanceCacheService<double> cache) : base(unitOfWork, cache)
         {
         }
 

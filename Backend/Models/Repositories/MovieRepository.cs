@@ -20,7 +20,7 @@ namespace Backend.Models.Repositories
 
         public async Task<List<Movie>> GetAllMovies(int numberOfRatings)
         {
-            return await _context.Movies.Include(x => x.Ratings).ThenInclude(y => y.User).Where(x => x.Ratings.Count() > numberOfRatings).ToListAsync();
+            return await _context.Movies.Include(x => x.Ratings).ThenInclude(y => y.User).Where(x => x.Ratings.Count() >= numberOfRatings).ToListAsync();
         }
         public async Task<List<Movie>> GetAllSeenMoviesByUserId(int userId)
         {

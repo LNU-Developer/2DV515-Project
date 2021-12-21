@@ -14,7 +14,7 @@ namespace Backend
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("http://*:7000");
+                    webBuilder.UseUrls("http://*:8000");
                     webBuilder.UseStartup<Startup>();
                 });
     }

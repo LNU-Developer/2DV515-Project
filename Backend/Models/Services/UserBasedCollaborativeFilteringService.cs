@@ -11,39 +11,33 @@ namespace Backend.Models.Services
     public abstract class UserBasedCollaborativeFilteringService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public UserBasedCollaborativeFilteringService(IUnitOfWork unitOfWork)
+        private readonly DistanceCacheService<double> _cache;
+        public UserBasedCollaborativeFilteringService(IUnitOfWork unitOfWork, DistanceCacheService<double> cache)
         {
             _unitOfWork = unitOfWork;
+            _cache = cache;
         }
 
-        public async Task<List<MovieRecommendation>> FindKMovieRecommendation(int selectedUserId, int k = 3, int numberOfRatings = 10)
+        public async Task<List<MovieRecommendation>> FindKMovieRecommendation(int selectedUserId, string method, int k = 3, int numberOfRatings = 10)
         {
             var selectedUser = await _unitOfWork.Users.GetUserById(selectedUserId);
-            var similarites = await CalculateSimilarityScores(selectedUser);
+            var similarites = await CalculateSimilarityScores(selectedUser, method);
             var weightedScores = await CalculateRatingWeightedScores(selectedUser, similarites);
             var bestMovies = await FindBestMovies(similarites, weightedScores, numberOfRatings);
             return bestMovies.Where(x => x.AverageWeightedRating > 0).Take(k).ToList();
         }
 
-        public async Task<List<Similarity>> FindKTopSimilar(int selectedUserId, int k = 3)
-        {
-            var selectedUser = await _unitOfWork.Users.GetUserById(selectedUserId);
-            var similarites = await CalculateSimilarityScores(selectedUser);
-            return similarites.Where(x => x.SimilarityScore > 0).Take(k).ToList();
-        }
-
         public abstract double CalculateDistance(User A, User B);
 
-        public async Task<List<Similarity>> CalculateSimilarityScores(User selectedUser)
+        public async Task<List<Similarity>> CalculateSimilarityScores(User selectedUser, string method)
         {
             var users = await _unitOfWork.Users.GetAllUsersDataExceptSelected(selectedUser);
 
             var similarityList = new List<Similarity>();
             foreach (var user in users)
             {
-                var cache = new DistanceCacheService<double>();
-                double distance = cache.GetOrCreate(selectedUser.UserId.ToString() + user.UserId.ToString(), () => CalculateDistance(selectedUser, user));
-                cache.GetOrCreate(user.UserId.ToString() + selectedUser.UserId.ToString(), () => distance);
+                double distance = _cache.GetOrCreate(selectedUser.UserId.ToString() + user.UserId.ToString() + method, () => CalculateDistance(selectedUser, user));
+                _cache.GetOrCreate(user.UserId.ToString() + selectedUser.UserId.ToString() + method, () => distance);
                 if (distance < 0) continue; //Not interested dissimilar scores, i.e only show scores with similarites
                 var similarity = CreateSimilarity(selectedUser, user, distance);
                 similarityList.Add(similarity);

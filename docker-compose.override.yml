@@ -14,7 +14,7 @@ services:
         source: C:\Users\Rickard Marjanovic\Desktop\2DV515-Project\Backend\SeedData
         target: /app/SeedData/
     ports:
-      - 8000:7000
+      - 8000:8000
 
   projectdb:
     volumes:

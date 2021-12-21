@@ -55,7 +55,7 @@ namespace Backend
             services.AddTransient<PearsonCorrelationService>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddSingleton<DistanceCacheService<double>>();
-
+            services.AddMemoryCache();
             services.AddCors(options =>
             {
                 options.AddPolicy("BackendCors",

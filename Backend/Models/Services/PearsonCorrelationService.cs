@@ -6,7 +6,7 @@ namespace Backend.Models.Services
 {
     public class PearsonCorrelationService : UserBasedCollaborativeFilteringService
     {
-        public PearsonCorrelationService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        public PearsonCorrelationService(IUnitOfWork unitOfWork, DistanceCacheService<double> cache) : base(unitOfWork, cache)
         {
         }
 
